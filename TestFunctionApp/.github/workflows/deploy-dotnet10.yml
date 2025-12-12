@@ -1,0 +1,33 @@
+name: Build and deploy .NET 10 Azure Function
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore MyFunctionApp/MyFunctionApp.csproj
+
+      - name: Build - Release
+        run: dotnet publish MyFunctionApp/MyFunctionApp.csproj -c Release -o ./publish
+
+      - name: Archive publish directory
+        run: zip -r publish.zip ./publish
+
+      - name: Deploy to Azure Functions
+        uses: azure/functions-action@v4
+        with:
+          app-name: 'rc-testfunc-ekh5cxfge6h8a9bh'
+          package: 'publish.zip'
